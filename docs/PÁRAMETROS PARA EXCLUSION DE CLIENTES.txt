@@ -1,0 +1,12 @@
+PÁRAMETROS PARA EXCLUSION DE CLIENTES :
+
+DIAS EN MORA   VALOR EN MORA    MONTO POR  COBRAR   RESULTADO   DESCRIPCION 
+   0                0                   0           EXCLUIDO    CLIENTE AL DIA  
+  null              0                   0           EXCLUIDO    CLIENTE AL DIA
+   + 0 		    0		        0           EXCLUIDO    CLIENTE CONTRATO LIQUIDADO PEND COMPR
+
+PÁRAMETROS PARA DIVISION DE 0 EN PREVENTIVA Y 0 EN MORA:
+
+DIAS EN MORA   VALOR EN MORA    MONTO POR  COBRAR   RESULTADO   
+   0		    0			+ 0         PREVENTIVA
+   0		    +0	                 +0		MORA 
