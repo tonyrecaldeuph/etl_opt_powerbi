@@ -1,0 +1,17 @@
+-- Ejecutar como superusuario en la BD dwh
+CREATE SCHEMA IF NOT EXISTS staging;
+CREATE SCHEMA IF NOT EXISTS core;
+CREATE SCHEMA IF NOT EXISTS meta;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='etl_app') THEN
+    CREATE ROLE etl_app LOGIN PASSWORD 'CHANGEME';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='bi_reader') THEN
+    CREATE ROLE bi_reader LOGIN PASSWORD 'CHANGEME';
+  END IF;
+END $$;
+
+GRANT ALL ON SCHEMA staging, core, meta TO etl_app;
+GRANT USAGE ON SCHEMA core TO bi_reader;
+ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT SELECT ON TABLES TO bi_reader;
