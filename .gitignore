@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+etl/config/empresas.local.yaml
+*.pbix
+F:/dwh/inbox/**
