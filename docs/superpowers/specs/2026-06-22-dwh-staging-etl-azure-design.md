@@ -85,8 +85,11 @@ Ambos archivos tienen una sola hoja: **`ReportUphone1`**, una fila por contrato 
 **Calidad de datos detectada (a tratar en el ETL):**
 - `DIAS IMPAGO`: contiene **nulos** (513 SAS / 115.792 SCC) y **valores negativos** (hasta −10.970 = pago adelantado).
 - `VALOR EN MORA` y `MONTO POR COBRAR`: sin nulos, mínimo 0.
-- **Nombres de columna con acentos/Ñ/°** → se normalizan a `snake_case` ASCII al ingestar.
+- **Nombres de columna con acentos/Ñ/°** → se normalizan a `snake_case` ASCII al ingestar. Ojo: el encabezado real es **`Nº CONTRATO`** con `º` ordinal (U+00BA), que en NFKD se descompone a `o` (→ `no_contrato`); se mapea a `numero_contrato` vía alias canónico. Igual `FECHA DE VENTA` → `fecha_venta`.
+- **`PLAZO` es texto** (incluye la unidad: `"13 QUINCENAS"`, `"12 MESES"`, `"26 SEMANAS"`) → se conserva como `text`, no numérico.
 - **Esquema distinto entre empresas** → se unifica; las columnas ausentes en una empresa quedan `NULL`.
+
+> Hallazgos confirmados al validar el ETL contra los archivos reales (carga end-to-end: distribución idéntica a la tabla de arriba, 212.329 filas).
 
 **Distribución según reglas (datos del 22-06-2026):**
 
