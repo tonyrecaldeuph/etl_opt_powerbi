@@ -51,3 +51,18 @@ CREATE TABLE IF NOT EXISTS core.fact_cobranza_snapshot (
 
 CREATE INDEX IF NOT EXISTS ix_fact_clasif
   ON core.fact_cobranza_snapshot (fecha_carga, clasificacion);
+
+-- Crea la partición mensual del hecho si no existe
+CREATE OR REPLACE FUNCTION core.crear_particion_fact(p_fecha date)
+RETURNS void LANGUAGE plpgsql AS $$
+DECLARE
+  ini date := date_trunc('month', p_fecha)::date;
+  fin date := (date_trunc('month', p_fecha) + interval '1 month')::date;
+  nom text := format('fact_cobranza_snapshot_%s', to_char(ini, 'YYYYMM'));
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = nom) THEN
+    EXECUTE format(
+      'CREATE TABLE core.%I PARTITION OF core.fact_cobranza_snapshot FOR VALUES FROM (%L) TO (%L)',
+      nom, ini, fin);
+  END IF;
+END $$;
