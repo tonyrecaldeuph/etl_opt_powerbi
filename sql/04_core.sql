@@ -25,11 +25,10 @@ CREATE TABLE IF NOT EXISTS core.dim_contrato (
 
 CREATE TABLE IF NOT EXISTS core.dim_gestor (
   gestor_key serial PRIMARY KEY,
+  gestor_hash text UNIQUE NOT NULL,   -- md5 de las 6 columnas; permite join por igualdad (hash join)
   distribuidor text, vendedor text,
   oficial_credito_solicitud text, oficial_credito_archivos text,
-  oficial_credito_contrato text, oficial_credito_llamada text,
-  UNIQUE (distribuidor, vendedor, oficial_credito_solicitud,
-          oficial_credito_archivos, oficial_credito_contrato, oficial_credito_llamada)
+  oficial_credito_contrato text, oficial_credito_llamada text
 );
 
 CREATE TABLE IF NOT EXISTS core.fact_cobranza_snapshot (
@@ -43,7 +42,7 @@ CREATE TABLE IF NOT EXISTS core.fact_cobranza_snapshot (
   imei             text,
   monto_por_cobrar numeric, valor_en_mora numeric, dias_impago numeric,
   costo numeric, entrada numeric, monto_total numeric,
-  valor_cuota numeric, numero_cuota numeric, plazo numeric,
+  valor_cuota numeric, numero_cuota numeric, plazo text,
   clasificacion    text NOT NULL,
   estado_dias      text NOT NULL,
   PRIMARY KEY (fecha_carga, empresa_key, numero_contrato)

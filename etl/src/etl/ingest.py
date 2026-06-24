@@ -4,9 +4,11 @@ from pathlib import Path
 from etl.normalize import normalize_headers
 from etl import meta
 
-# Columnas que se castean a numeric al pasar de temp -> staging
+# Columnas que se castean a numeric al pasar de temp -> staging.
+# OJO: 'plazo' NO va aquí: en el origen real es texto con unidad ("13 QUINCENAS",
+# "12 MESES", "26 SEMANAS"), por lo que se conserva como texto.
 NUMERIC_COLS = {
-    "plazo", "costo", "entrada", "monto_total", "monto_por_cobrar",
+    "costo", "entrada", "monto_total", "monto_por_cobrar",
     "valor_en_mora", "valor_cuota", "numero_cuota", "dias_impago",
 }
 # Columnas válidas en staging.reporte_cobranza (sin empresa/fecha_carga)

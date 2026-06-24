@@ -2,9 +2,13 @@
 import re
 import unicodedata
 
-# Overrides canónicos tras la normalización mecánica
+# Overrides canónicos tras la normalización mecánica.
+# Nota: el encabezado real es "Nº CONTRATO" con º ordinal (U+00BA), que en NFKD
+# se descompone a "o" -> "no_contrato". También aceptamos "n_contrato" (con ° grados).
 CANONICAL_RENAMES = {
+    "no_contrato": "numero_contrato",
     "n_contrato": "numero_contrato",
+    "fecha_de_venta": "fecha_venta",
 }
 
 def normalize_column(name: str) -> str:

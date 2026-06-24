@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS staging.reporte_cobranza (
   grupo             text,
   estado_dispositivo text,
   contrato_refinanciado text,
-  plazo             numeric,
+  plazo             text,    -- texto: incluye unidad ("13 QUINCENAS", "12 MESES", "26 SEMANAS")
   costo             numeric,
   entrada           numeric,
   monto_total       numeric,

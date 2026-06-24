@@ -3,7 +3,9 @@ import pytest
 from etl.normalize import normalize_column, normalize_headers
 
 @pytest.mark.parametrize("raw,expected", [
-    ("N° CONTRATO", "numero_contrato"),   # override canónico
+    ("Nº CONTRATO", "numero_contrato"),   # encabezado real: º ordinal (U+00BA) -> "no_contrato" -> rename
+    ("N° CONTRATO", "numero_contrato"),   # variante con ° grados (U+00B0) -> "n_contrato" -> rename
+    ("FECHA DE VENTA", "fecha_venta"),    # override canónico
     ("CÉDULA", "cedula"),
     ("DIAS IMPAGO", "dias_impago"),
     ("MONTO POR COBRAR", "monto_por_cobrar"),

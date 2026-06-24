@@ -11,6 +11,15 @@ _ESTADO_SQL = """
        ELSE 'EN_MORA' END
 """
 
+_GESTOR_COLS = ["distribuidor", "vendedor", "oficial_credito_solicitud",
+                "oficial_credito_archivos", "oficial_credito_contrato",
+                "oficial_credito_llamada"]
+
+def _gestor_hash_sql(alias: str) -> str:
+    """md5 de las 6 columnas de gestor (con alias de tabla) para join por igualdad."""
+    parts = "||'|'||".join(f"coalesce({alias}.{c},'')" for c in _GESTOR_COLS)
+    return f"md5({parts})"
+
 def _crear_particion_fact(cur, fecha_carga):
     # Usa la función SQL core.crear_particion_fact (definida en sql/04_core.sql)
     # para evitar el conflicto entre los directivos format() de PL/pgSQL (%s/%I/%L)
@@ -55,12 +64,14 @@ def load_core(conn, empresa: str, fecha_carga: str):
         """, params)
 
         cur.execute(f"""
-          INSERT INTO core.dim_gestor (distribuidor, vendedor, oficial_credito_solicitud,
-            oficial_credito_archivos, oficial_credito_contrato, oficial_credito_llamada)
-          SELECT DISTINCT distribuidor, vendedor, oficial_credito_solicitud,
-            oficial_credito_archivos, oficial_credito_contrato, oficial_credito_llamada
+          INSERT INTO core.dim_gestor (gestor_hash, distribuidor, vendedor,
+            oficial_credito_solicitud, oficial_credito_archivos,
+            oficial_credito_contrato, oficial_credito_llamada)
+          SELECT DISTINCT {_gestor_hash_sql('s')}, distribuidor, vendedor,
+            oficial_credito_solicitud, oficial_credito_archivos,
+            oficial_credito_contrato, oficial_credito_llamada
           FROM ({src}) s
-          ON CONFLICT DO NOTHING
+          ON CONFLICT (gestor_hash) DO NOTHING
         """, params)
 
         _crear_particion_fact(cur, fecha_carga)
@@ -86,13 +97,7 @@ def load_core(conn, empresa: str, fecha_carga: str):
           LEFT JOIN core.dim_cliente c ON c.cedula = s.cedula
           LEFT JOIN core.dim_dispositivo d ON d.imei = s.imei
           JOIN core.dim_contrato k ON k.numero_contrato = s.numero_contrato
-          LEFT JOIN core.dim_gestor g
-            ON g.distribuidor IS NOT DISTINCT FROM s.distribuidor
-           AND g.vendedor IS NOT DISTINCT FROM s.vendedor
-           AND g.oficial_credito_solicitud IS NOT DISTINCT FROM s.oficial_credito_solicitud
-           AND g.oficial_credito_archivos IS NOT DISTINCT FROM s.oficial_credito_archivos
-           AND g.oficial_credito_contrato IS NOT DISTINCT FROM s.oficial_credito_contrato
-           AND g.oficial_credito_llamada IS NOT DISTINCT FROM s.oficial_credito_llamada
+          LEFT JOIN core.dim_gestor g ON g.gestor_hash = {_gestor_hash_sql('s')}
           WHERE s.empresa=%s AND s.fecha_carga=%s
         """, (empresa, fecha_carga))
     conn.commit()

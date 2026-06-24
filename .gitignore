@@ -5,3 +5,5 @@ __pycache__/
 etl/config/empresas.local.yaml
 *.pbix
 F:/dwh/inbox/**
+
+.validacion/
