@@ -1,6 +1,6 @@
 # etl/tests/test_meta.py (parte 1: conexión)
 import pytest
-from etl.db import get_connection, copy_rows
+from etl.db import get_connection
 
 @pytest.mark.db
 def test_get_connection_roundtrip(db_conn, monkeypatch):

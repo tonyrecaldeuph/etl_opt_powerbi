@@ -41,15 +41,18 @@ def load_core(conn, empresa: str, fecha_carga: str):
           SELECT DISTINCT ON (cedula) cedula, nombre_cliente, apellido_cliente,
             telefono_1, telefono_2, telefono_final, telefono_ref, direccion_cliente, correo_cliente
           FROM ({src}) s WHERE cedula IS NOT NULL
+          ORDER BY cedula, numero_contrato
           ON CONFLICT (cedula) DO UPDATE SET
             nombre_cliente=EXCLUDED.nombre_cliente, apellido_cliente=EXCLUDED.apellido_cliente,
             telefono_1=EXCLUDED.telefono_1, telefono_2=EXCLUDED.telefono_2,
+            telefono_final=EXCLUDED.telefono_final, telefono_ref=EXCLUDED.telefono_ref,
             direccion_cliente=EXCLUDED.direccion_cliente, correo_cliente=EXCLUDED.correo_cliente
         """, params)
 
         cur.execute(f"""
           INSERT INTO core.dim_dispositivo (imei, marca, modelo)
           SELECT DISTINCT ON (imei) imei, marca, modelo FROM ({src}) s WHERE imei IS NOT NULL
+          ORDER BY imei, numero_contrato
           ON CONFLICT (imei) DO UPDATE SET marca=EXCLUDED.marca, modelo=EXCLUDED.modelo
         """, params)
 
@@ -59,6 +62,7 @@ def load_core(conn, empresa: str, fecha_carga: str):
           SELECT DISTINCT ON (numero_contrato) numero_contrato,
             NULLIF(trim(fecha_venta),'')::date, grupo, estado_dispositivo, contrato_refinanciado
           FROM ({src}) s WHERE numero_contrato IS NOT NULL
+          ORDER BY numero_contrato
           ON CONFLICT (numero_contrato) DO UPDATE SET grupo=EXCLUDED.grupo,
             estado_dispositivo=EXCLUDED.estado_dispositivo
         """, params)
