@@ -1,0 +1,12 @@
+empresas:
+  SAS:
+    inbox: "C:/Users/HP/Desktop/DESARROLLOS_UPHONE/Flujo_datos/.pilot/inbox/SAS"
+    patron: "RV_SAS *.csv"
+    delimitador: ","
+    encoding: "utf-8"
+  SCC:
+    inbox: "C:/Users/HP/Desktop/DESARROLLOS_UPHONE/Flujo_datos/.pilot/inbox/SCC"
+    patron: "RV_SCC *.csv"
+    delimitador: ","
+    encoding: "utf-8"
+procesados: "C:/Users/HP/Desktop/DESARROLLOS_UPHONE/Flujo_datos/.pilot/inbox/procesados"
