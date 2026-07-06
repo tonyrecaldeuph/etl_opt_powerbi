@@ -41,6 +41,9 @@ def ingest_csv(conn, path, empresa: str, fecha_carga: str, delimitador: str = ",
     conn.autocommit = False
     try:
         with conn.cursor() as cur:
+            # Limpiar staging previo para esta empresa/fecha (re-ejecución idempotente)
+            cur.execute("DELETE FROM staging.reporte_cobranza WHERE empresa=%s AND fecha_carga=%s",
+                        (empresa, fecha_carga))
             cur.execute("CREATE TEMP TABLE _tmp_ingest (" +
                         ", ".join(f"{c} text" for c in norm) + ") ON COMMIT DROP")
             with path.open("r", encoding=encoding, newline="") as fh:
