@@ -7,3 +7,5 @@ etl/config/empresas.local.yaml
 F:/dwh/inbox/**
 
 .validacion/
+.pilot/
+pg_test.log
