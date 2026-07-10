@@ -33,10 +33,12 @@ sql/
   05_views.sql                   # vw_cobranza, vw_resumen_clasificacion
   06_postgresql.conf.md          # tuning recomendado (32 GB RAM)
 docs/
-  setup-vm.md                    # checklist de despliegue en la VM
+  setup-vm.md                    # checklist corto de despliegue en la VM
+  despliegue-vm.md               # plan de despliegue + guía de ejecución diaria
   prueba-piloto.md                # guía de prueba local end-to-end
-run_etl.bat                      # entrypoint del Programador de tareas
 ```
+> `run_etl.bat` (entrypoint del Programador de tareas) se crea en la VM; su
+> contenido está en [`docs/despliegue-vm.md`](docs/despliegue-vm.md).
 
 ## Reglas de negocio
 
@@ -49,6 +51,20 @@ run_etl.bat                      # entrypoint del Programador de tareas
 | | `dias_impago < 0` | `ADELANTADO` |
 | | `dias_impago = 0` | `AL_DIA` |
 | | `dias_impago > 0` | `EN_MORA` |
+
+## Modelo dimensional (`core`)
+
+Esquema estrella: el hecho `fact_cobranza_snapshot` (snapshot diario, una fila por
+contrato × `fecha_carga`) referencia 6 dimensiones.
+
+| Dimensión | Contenido |
+|---|---|
+| `dim_empresa` | Empresa emisora (SAS / SCC) |
+| `dim_cliente` | Cédula + datos de contacto |
+| `dim_dispositivo` | IMEI, marca, modelo |
+| `dim_contrato` | N.º contrato, fecha venta, grupo, estado |
+| `dim_distribuidor` | Punto de venta (columna `distribuidor` del CSV) |
+| `dim_oficiales_credito` | Vendedor + los 4 `oficial_credito_*` |
 
 ## Flujo de ejecución del ETL
 
@@ -118,15 +134,16 @@ flowchart LR
 cd etl
 $env:PYTHONPATH="src"
 .\.venv\Scripts\python.exe -m pytest -m "not db"   # 24 tests puros (normalize, rules, config, runner)
-.\.venv\Scripts\python.exe -m pytest -m db          # 6 tests de integración (requiere TEST_DATABASE_URL)
+.\.venv\Scripts\python.exe -m pytest -m db          # 7 tests de integración (requiere TEST_DATABASE_URL)
 ```
 
 Guía completa de prueba end-to-end local (DBVisualizer + servidor Postgres de pruebas en :5433): [`docs/prueba-piloto.md`](docs/prueba-piloto.md).
 
 ## Despliegue en producción
 
-Checklist paso a paso para provisionar la VM, PostgreSQL, la tarea programada y Power BI: [`docs/setup-vm.md`](docs/setup-vm.md).
+- Guía completa (plan de despliegue + ejecución diaria + actualización de un `core` existente): [`docs/despliegue-vm.md`](docs/despliegue-vm.md).
+- Checklist corto de provisión: [`docs/setup-vm.md`](docs/setup-vm.md).
 
 ## Estado
 
-Las 11 tareas del [plan de implementación](docs/superpowers/plans/2026-06-23-dwh-cobranza-etl.md) están completas y validadas contra datos reales (212.329 filas, 2026-06-22). Pendiente: despliegue efectivo en la VM de producción.
+Las 11 tareas del [plan de implementación](docs/superpowers/plans/2026-06-23-dwh-cobranza-etl.md) están completas y validadas contra datos reales (212.329 filas, 2026-06-22). El modelo `core` se reorganizó a pedido: `distribuidor` pasó a su propia `dim_distribuidor` y la antigua `dim_gestor` se renombró a `dim_oficiales_credito` (misma distribución EXCLUIDO/PREVENTIVA/MORA). Pendiente: despliegue efectivo en la VM de producción.
