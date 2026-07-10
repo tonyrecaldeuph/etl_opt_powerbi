@@ -9,7 +9,8 @@ load_dotenv()  # carga etl/.env cuando pytest corre desde el dir etl
 _CLEAN_SQL = (
     "TRUNCATE staging.reporte_cobranza, core.fact_cobranza_snapshot, "
     "core.dim_cliente, core.dim_dispositivo, core.dim_contrato, "
-    "core.dim_gestor, core.dim_empresa, meta.job_run, meta.archivo_procesado "
+    "core.dim_oficiales_credito, core.dim_distribuidor, core.dim_empresa, "
+    "meta.job_run, meta.archivo_procesado "
     "RESTART IDENTITY CASCADE"
 )
 

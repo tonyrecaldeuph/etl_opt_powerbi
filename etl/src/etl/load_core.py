@@ -11,13 +11,13 @@ _ESTADO_SQL = """
        ELSE 'EN_MORA' END
 """
 
-_GESTOR_COLS = ["distribuidor", "vendedor", "oficial_credito_solicitud",
+_OFICIAL_CREDITO_COLS = ["vendedor", "oficial_credito_solicitud",
                 "oficial_credito_archivos", "oficial_credito_contrato",
                 "oficial_credito_llamada"]
 
-def _gestor_hash_sql(alias: str) -> str:
-    """md5 de las 6 columnas de gestor (con alias de tabla) para join por igualdad."""
-    parts = "||'|'||".join(f"coalesce({alias}.{c},'')" for c in _GESTOR_COLS)
+def _oficial_credito_hash_sql(alias: str) -> str:
+    """md5 de las 5 columnas de oficiales de crédito (con alias de tabla) para join por igualdad."""
+    parts = "||'|'||".join(f"coalesce({alias}.{c},'')" for c in _OFICIAL_CREDITO_COLS)
     return f"md5({parts})"
 
 def _crear_particion_fact(cur, fecha_carga):
@@ -68,14 +68,20 @@ def load_core(conn, empresa: str, fecha_carga: str):
         """, params)
 
         cur.execute(f"""
-          INSERT INTO core.dim_gestor (gestor_hash, distribuidor, vendedor,
+          INSERT INTO core.dim_distribuidor (distribuidor)
+          SELECT DISTINCT distribuidor FROM ({src}) s WHERE distribuidor IS NOT NULL
+          ON CONFLICT (distribuidor) DO NOTHING
+        """, params)
+
+        cur.execute(f"""
+          INSERT INTO core.dim_oficiales_credito (oficial_credito_hash, vendedor,
             oficial_credito_solicitud, oficial_credito_archivos,
             oficial_credito_contrato, oficial_credito_llamada)
-          SELECT DISTINCT {_gestor_hash_sql('s')}, distribuidor, vendedor,
+          SELECT DISTINCT {_oficial_credito_hash_sql('s')}, vendedor,
             oficial_credito_solicitud, oficial_credito_archivos,
             oficial_credito_contrato, oficial_credito_llamada
           FROM ({src}) s
-          ON CONFLICT (gestor_hash) DO NOTHING
+          ON CONFLICT (oficial_credito_hash) DO NOTHING
         """, params)
 
         _crear_particion_fact(cur, fecha_carga)
@@ -88,11 +94,11 @@ def load_core(conn, empresa: str, fecha_carga: str):
 
         cur.execute(f"""
           INSERT INTO core.fact_cobranza_snapshot (fecha_carga, empresa_key, cliente_key,
-            dispositivo_key, contrato_key, gestor_key, numero_contrato, imei,
+            dispositivo_key, contrato_key, oficial_credito_key, distribuidor_key, numero_contrato, imei,
             monto_por_cobrar, valor_en_mora, dias_impago, costo, entrada, monto_total,
             valor_cuota, numero_cuota, plazo, clasificacion, estado_dias)
           SELECT s.fecha_carga, e.empresa_key, c.cliente_key, d.dispositivo_key,
-            k.contrato_key, g.gestor_key, s.numero_contrato, s.imei,
+            k.contrato_key, oc.oficial_credito_key, dist.distribuidor_key, s.numero_contrato, s.imei,
             s.monto_por_cobrar, s.valor_en_mora, s.dias_impago, s.costo, s.entrada,
             s.monto_total, s.valor_cuota, s.numero_cuota, s.plazo,
             {_CLASIF_SQL}, {_ESTADO_SQL}
@@ -101,7 +107,8 @@ def load_core(conn, empresa: str, fecha_carga: str):
           LEFT JOIN core.dim_cliente c ON c.cedula = s.cedula
           LEFT JOIN core.dim_dispositivo d ON d.imei = s.imei
           JOIN core.dim_contrato k ON k.numero_contrato = s.numero_contrato
-          LEFT JOIN core.dim_gestor g ON g.gestor_hash = {_gestor_hash_sql('s')}
+          LEFT JOIN core.dim_oficiales_credito oc ON oc.oficial_credito_hash = {_oficial_credito_hash_sql('s')}
+          LEFT JOIN core.dim_distribuidor dist ON dist.distribuidor = s.distribuidor
           WHERE s.empresa=%s AND s.fecha_carga=%s
         """, (empresa, fecha_carga))
     conn.commit()

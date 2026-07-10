@@ -73,7 +73,7 @@ flowchart TD
 
     STAGING --> LOADCORE["load_core.py<br/>upsert dimensiones + INSERT hecho"]
     LOADCORE --> RULES["clasificar() / estado_dias()<br/>(SQL equivalente, validado por tests)"]
-    RULES --> FACT[("core.fact_cobranza_snapshot<br/>+ dim_cliente, dim_dispositivo,<br/>dim_contrato, dim_gestor, dim_empresa")]
+    RULES --> FACT[("core.fact_cobranza_snapshot<br/>+ dim_cliente, dim_dispositivo,<br/>dim_contrato, dim_oficiales_credito, dim_distribuidor, dim_empresa")]
 
     FACT --> REGISTRA["meta.registrar_archivo<br/>+ meta.finish_run (success/failed)"]
     REGISTRA --> MUEVE["mover CSV a<br/>inbox/procesados"]
