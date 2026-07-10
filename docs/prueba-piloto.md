@@ -58,6 +58,14 @@ Para cada uno: `SQL Commander` → `Load` → selecciona el archivo → ejecúta
 
 > Para empezar de cero puedes hacer clic derecho en `dwh_test` → `Drop Database`, recrearla y volver a correr el DDL.
 
+> **Modelo dimensional (`core`)** — el hecho `fact_cobranza_snapshot` referencia 6 dimensiones:
+> `dim_empresa` (SAS/SCC), `dim_cliente`, `dim_dispositivo`, `dim_contrato`,
+> `dim_distribuidor` (punto de venta) y `dim_oficiales_credito` (vendedor + los 4
+> `oficial_credito_*`). `dim_distribuidor` y `dim_oficiales_credito` reemplazan a la
+> antigua `dim_gestor`: el distribuidor se separó a su propia dimensión y el resto se
+> renombró. Si vienes de un esquema viejo, recrea el esquema `core` (`DROP SCHEMA core
+> CASCADE;` + re-correr `04_core.sql` y `05_views.sql`) y recarga.
+
 ---
 
 ## Paso 3 — Preparar los archivos de entrada (CSV)
@@ -151,6 +159,17 @@ SELECT empresa, estado_dias, count(*)
 FROM core.fact_cobranza_snapshot f
 JOIN core.dim_empresa e ON e.empresa_key = f.empresa_key
 GROUP BY 1,2 ORDER BY 1,2;
+
+-- Distribuidores (punto de venta) cargados en dim_distribuidor
+SELECT distribuidor, count(*) AS contratos
+FROM core.vw_cobranza
+WHERE distribuidor IS NOT NULL
+GROUP BY 1 ORDER BY 2 DESC;
+
+-- Oficiales de crédito / vendedor (dim_oficiales_credito, ex dim_gestor)
+SELECT vendedor, oficial_credito_solicitud, oficial_credito_contrato, count(*) AS contratos
+FROM core.vw_cobranza
+GROUP BY 1,2,3 ORDER BY 4 DESC;
 ```
 
 Resultado esperado de la primera consulta:
