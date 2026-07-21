@@ -59,7 +59,7 @@ CREATE INDEX IF NOT EXISTS ix_fact_clasif
 
 -- Crea la partición mensual del hecho si no existe
 CREATE OR REPLACE FUNCTION core.crear_particion_fact(p_fecha date)
-RETURNS void LANGUAGE plpgsql AS $$
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
   ini date := date_trunc('month', p_fecha)::date;
   fin date := (date_trunc('month', p_fecha) + interval '1 month')::date;

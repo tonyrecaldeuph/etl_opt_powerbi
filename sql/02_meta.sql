@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS meta.archivo_procesado (
 
 -- Crea la partición mensual de staging si no existe
 CREATE OR REPLACE FUNCTION meta.crear_particion_staging(p_fecha date)
-RETURNS void LANGUAGE plpgsql AS $$
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
   ini date := date_trunc('month', p_fecha)::date;
   fin date := (date_trunc('month', p_fecha) + interval '1 month')::date;
