@@ -2,11 +2,11 @@ empresas:
   SAS:
     inbox: "F:/dwh/inbox/SAS"
     patron: "RV_SAS *.csv"
-    delimitador: ","
+    delimitador: ";"
     encoding: "utf-8"
   SCC:
     inbox: "F:/dwh/inbox/SCC"
     patron: "RV_SCC *.csv"
-    delimitador: ","
+    delimitador: ";"
     encoding: "utf-8"
 procesados: "F:/dwh/inbox/procesados"
