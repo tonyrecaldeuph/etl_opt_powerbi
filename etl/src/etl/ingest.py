@@ -56,7 +56,10 @@ def ingest_csv(conn, path, empresa: str, fecha_carga: str, delimitador: str = ",
             select_cols = []
             for c in cols:
                 if c in NUMERIC_COLS:
-                    select_cols.append(f"NULLIF(trim({c}),'')::numeric AS {c}")
+                    # Origen usa formato europeo: '.' como separador de miles, ',' como decimal
+                    # (ej. "1.234,56"). Se normaliza a formato numeric de Postgres antes del cast.
+                    select_cols.append(
+                        f"NULLIF(replace(replace(trim({c}), '.', ''), ',', '.'), '')::numeric AS {c}")
                 else:
                     select_cols.append(c)
             insert_cols = ["empresa", "fecha_carga"] + cols
